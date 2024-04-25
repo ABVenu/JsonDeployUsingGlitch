@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /* #login {
+        display: none;
+      } */
+    </style>
+  </head>
+  <body>
+    <div id="signup">
+      <h5>Signup....</h5>
+      <input type="text" id="name" />
+      <input type="text" id="email" />
+      <input type="text" id="password" />
+      <input type="submit" id="submit" value="Signup" />
+    </div>
+
+    <div id="login">
+      <h5>Login.....</h5>
+      <input type="text" id="lemail" />
+      <input type="text" id="lpassword" />
+      <input type="submit" id="lsubmit" value="Login" />
+    </div>
+  </body>
+  <script>
+    document.getElementById("submit").addEventListener("click", function (event) {
+        event.preventDefault();
+        let name = document.getElementById("name").value;
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+
+        let obj = { name, email, password };
+        fetch("http://localhost:3000/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(obj),
+        })
+          .then(() => {
+           alert("Signup successful, Please Login");
+           
+          })
+          .catch((err) => {
+            console.error("Signup failed:", err);
+            alert("Signup Failed, Please Try Again Later");
+          });
+      });
+
+
+      ////////////////
+
+      document.getElementById("lsubmit").addEventListener("click", async function (event) {
+        event.preventDefault();
+        let email = document.getElementById("lemail").value;
+        let password = document.getElementById("lpassword").value;
+
+        let obj = {email, password };
+        let res = await fetch("http://localhost:3000/users")
+        let data = await res.json();
+        var flag = true
+        data.forEach((el,i)=>{
+            if(el.email== email){
+                if(el.password = password){
+                    alert("Login Sucessfull")
+                    flag = false;
+                    localStorage.setItem("loginUser", JSON.stringify(el))
+                    window.location.href = "products.html";
+                    
+                }else{
+                    alert("Wrong Password")
+                    return
+                }
+            }
+        })
+        if(flag){
+            alert("User Not Registered, Please Signup")
+        }
+      });
+
+
+
+      
+  </script>
+</html>

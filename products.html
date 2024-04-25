@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #cont {
+        width: 80%;
+        margin: auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      #cont > div {
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        padding: 20px;
+      }
+      #cont > div > img {
+        width: 250px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="user">
+      <button onclick="logOutFn()">Logout</button>
+      <h4 id="total"></h4>
+    </div>
+    <div id="cont"></div>
+  </body>
+  <script>
+    let loginUser = JSON.parse(localStorage.getItem("loginUser"));
+
+    let cont = document.getElementById("cont");
+    let total = document.getElementById("total");
+    window.onload = () => {
+      let h2 = document.createElement("h2");
+      h2.textContent = `Welcome:- ${loginUser.name}`;
+      document.getElementById("user").append(h2);
+      fetchData();
+      cartValue();
+    };
+    async function fetchData() {
+      let res = await fetch("http://localhost:3000/products");
+      let data = await res.json();
+      displayData(data);
+    }
+
+    function displayData(arr) {
+      arr.map((el, i) => {
+        let card = document.createElement("div");
+        let h3 = document.createElement("h3");
+        h3.textContent = `title:- ${el.title}`;
+        let img = document.createElement("img");
+        img.src = el.src;
+        let h4 = document.createElement("h4");
+        h4.textContent = `price:- ${el.price}`;
+        let h5 = document.createElement("h5");
+        h5.textContent = `ratings:- ${el.ratings}`;
+        let addbtn = document.createElement("button");
+        addbtn.textContent = "Add to Cart";
+        addbtn.addEventListener("click", function () {
+          addFn(el);
+        });
+        let delBtn = document.createElement("button");
+        delBtn.textContent = "Delete From Cart";
+        delBtn.addEventListener("click", function () {
+          delFn(el);
+        });
+        card.append(h3, img, h4, h5, addbtn,delBtn);
+        cont.append(card);
+      });
+    }
+
+    function logOutFn() {
+      localStorage.removeItem("loginUser");
+      alert("Logged Out Sucessfully");
+      window.location.href = "index.html";
+    }
+
+    async function addFn(el) {
+      //http://localhost:3000/allUsersCart
+      let data = await fetch("http://localhost:3000/allUsersCart");
+      let res = await data.json();
+      if (res[loginUser.name] == undefined) {
+        res[loginUser.name] = [el];
+      } else {
+        res[loginUser.name] = [...res[loginUser.name], el];
+      }
+      fetch("http://localhost:3000/allUsersCart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(res),
+      })
+        .then((res) => {
+          console.log(res);
+          console.log("ok");
+        })
+        .catch((err) => {
+          console.log("failed");
+        });
+    }
+
+    async function cartValue() {
+      let data = await fetch("http://localhost:3000/allUsersCart");
+      let res = await data.json();
+console.log(res[loginUser.name])
+      if (res[loginUser.name] == undefined) {
+        total.textContent = `Total Price: 0`;
+      } else {
+        let ans = res[loginUser.name].reduce((a, el, i) => {
+          return a + el.price;
+        }, 0);
+        total.textContent = `Total Cart Value: ${ans}`;
+      }
+    }
+
+    async function delFn(el){
+        event.preventDefault()
+        let data = await fetch("http://localhost:3000/allUsersCart");
+      let res = await data.json();
+      console.log(res[loginUser.name])
+      if (res[loginUser.name] == undefined) {
+        alert("Item not added in the cart")
+      } else {
+
+        let ans  = res[loginUser.name].filter((ele,i)=>{
+            // console.log(el,ele, ele!=el)
+            if(ele.id != el.id){
+                return ele
+            }
+            
+        });
+        res[loginUser.name] = ans
+      }
+      fetch("http://localhost:3000/allUsersCart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(res),
+      })
+        .then((res) => {
+          console.log(res);
+          console.log("Deleted");
+        })
+        .catch((err) => {
+          console.log("failed");
+        });
+    }
+  </script>
+</html>
